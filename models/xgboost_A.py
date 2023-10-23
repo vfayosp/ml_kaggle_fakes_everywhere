@@ -40,6 +40,22 @@ X_train, y_train = X, Y
 ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
 X_train = X_train.drop(['Fake/Real'], axis=1)
 
+def non_nan_value(x, y):
+    if pd.isnull(x):
+        return y
+    else:
+        return x
+    
+
+'''
+for i in range(X_train.shape[0]):
+    X_train['Small'][i] = non_nan_value(X_train['Small'][i], X_train['Small size'][i])
+    X_train['Mid'][i] = non_nan_value(X_train['Mid'][i], X_train['Mid size'][i])
+    X_train['Large'][i] = non_nan_value(X_train['Large'][i], X_train['Large size'][i])
+X_train.drop(['Small size', 'Mid size', 'Large size'], axis=1, inplace=True)
+'''
+    
+
 columns = X_train.columns
 
 ############################## Cross val ###############################
