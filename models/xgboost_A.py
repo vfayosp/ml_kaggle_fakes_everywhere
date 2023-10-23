@@ -10,75 +10,21 @@ from matplotlib import pyplot as plt
 
 
 ########################## Preprocessing ############################
-db = pd.read_csv('../database/train_A_derma.csv')
 
-# Replace real/fake with 0/1, drop Id and Doughnuts consumption
-db['Fake/Real'] = db['Fake/Real'].replace({'real': 0, 'fake': 1})
-db.drop(['Id', 'Doughnuts consumption'],axis=1, inplace=True)
+db      = pd.read_csv('../database/train_A_derma_one_hot_nan.csv')
+db_test = pd.read_csv('../database/test_A_derma_one_hot_nan.csv')
 
-# Add Num NaN column
-db['Num NaN'] = db.isnull().sum(axis=1)
+X_train = db
+y_train = db['Fake/Real']
+X_test = db_test
 
-X = db
-Y = db['Fake/Real']
-
-# Change column type to category (to avoid warnings)
-for column in ['Lession', 'Skin X test', 'Skin color', 'Small size', 
-               'Mid size', 'Large size', 'Small', 'Mid', 'Large']:
-    X[column] = X[column].astype("category")
-
-# Add one-hot encoded columns for NaN values
-for column in X.columns: 
-    if column == 'Fake/Real' or column == 'Num NaN': 
-        continue
-    one_hot_encoded = pd.get_dummies(X[column].isna(), prefix=column+'_isNaN', dtype=int)
-    X = pd.concat([X, one_hot_encoded[column+'_isNaN'+'_True']], axis=1) # get only one column
-
-    
 # Compute ratio sum(negative instances) / sum(positive instances)
-X_train, y_train = X, Y
 ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
+
+# Drop target column from X
 X_train = X_train.drop(['Fake/Real'], axis=1)
 
-def non_nan_value(x, y):
-    if pd.isnull(x):
-        return y
-    else:
-        return x
-    
-
-'''
-for i in range(X_train.shape[0]):
-    X_train['Small'][i] = non_nan_value(X_train['Small'][i], X_train['Small size'][i])
-    X_train['Mid'][i] = non_nan_value(X_train['Mid'][i], X_train['Mid size'][i])
-    X_train['Large'][i] = non_nan_value(X_train['Large'][i], X_train['Large size'][i])
-X_train.drop(['Small size', 'Mid size', 'Large size'], axis=1, inplace=True)
-'''
-    
-
 columns = X_train.columns
-
-############################## Cross val ###############################
-
-cv_params = {
-    'metrics': 'error', # logloss, error, etc...
-    'nfold': 5,
-    'num_boost_round': 1000,  
-    'early_stopping_rounds': 50,
-}
-
-xgb_parms = {
-    'objective': 'binary:logistic',
-    'num_boost_round': 24,
-    'seed': 0,
-    'learning_rate': 0.3,  
-    'max_depth': 3,  # e.g., 3, 6, 9
-    'subsample': 1.0,  # between 0.6 and 1.0
-    'colsample_bytree': 0.6,  # between 0.6 and 1.0
-    'lambda': 0.7,  # Regularization term
-    'alpha': 0.0,  # Regularization term
-}
-
 
 def scale_features(X, col_names):
 
@@ -92,6 +38,28 @@ def scale_features(X, col_names):
     return X
 
 X_train = scale_features(X_train, ['Genetic Propensity'])
+X_test = scale_features(X_test, ['Genetic Propensity'])
+
+############################## Cross val ###############################
+
+cv_params = {
+    'metrics': 'error', # logloss, error, etc...
+    'nfold': 5,
+    'num_boost_round': 1000,  
+    'early_stopping_rounds': 50,
+}
+
+xgb_parms = {
+    'objective': 'binary:logistic',
+    'num_boost_round': 52,
+    'seed': 0,
+    'learning_rate': 0.1,  
+    'max_depth': 4,  # e.g., 3, 6, 9
+    'subsample': 1.0,  # between 0.6 and 1.0
+    'colsample_bytree': 0.6,  # between 0.6 and 1.0
+    'lambda': 0.9,  # Regularization term
+    'alpha': 0.8,  # Regularization term
+}
 
 xgb_model = xgb.XGBClassifier(
     **xgb_parms,
@@ -110,7 +78,6 @@ print(cv)
 
 ############################ Train & test #############################
 
-
 xgb = xgb.XGBClassifier(
     **xgb_parms,
     scale_pos_weight=ratio,
@@ -118,13 +85,19 @@ xgb = xgb.XGBClassifier(
 )
 xgb.fit(X_train, y_train)
 y_train_pred = xgb.predict(X_train)
+y_test_pred  = xgb.predict(X_test)
 
-print("\nTrain accuracy: ", accuracy_score(y_train, y_train_pred))
+print()
+print("Train accuracy: ", accuracy_score(y_train, y_train_pred))
 
 plt.barh(columns, xgb.feature_importances_)
 plt.show()
 
-
+############################ Save output #############################
+output = np.where(y_test_pred == 1, 'fake', 'real')
+output = pd.DataFrame(output, columns=['Predictions'])
+output.index.name = 'Id'
+output.to_csv('../output/xgboost_A.csv')
 
 
 
