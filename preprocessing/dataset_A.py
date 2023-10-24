@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 db = pd.read_csv('../database/train_A_derma.csv')
 
 db.drop(['Id','Doughnuts consumption'], axis=1, inplace=True)
 db['Fake/Real'] = db['Fake/Real'].replace({'real': 0, 'fake': 1})
 
+
+print(db.describe())
 def populate_nan(row):
     if 1 in row.values:
         return row.fillna(0)
@@ -30,4 +31,4 @@ db[['Small size','Mid size', 'Large size', 'Small', 'Mid', 'Large']] = db[['Smal
 
 print(db.describe())
 
-pd.DataFrame.to_csv(db, '../database/train_A_derma_negative_nan.csv')
+pd.DataFrame.to_csv(db, '../database/train_A_input_sizes.csv')
