@@ -3,38 +3,27 @@ import numpy as np
 from tpot import TPOTClassifier
 from sklearn.model_selection import train_test_split
 
-df=pd.read_csv('../database/train_A_derma.csv')
-Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
+def read_A():
+    df=pd.read_csv('../database/train_A_derma.csv')
+    Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
 
-X = df.drop(['Fake/Real', 'Doughnuts consumption', 'Id'], axis=1)
+    X = df.drop(['Fake/Real', 'Doughnuts consumption', 'Id'], axis=1)
+    return X,Y
 
+def read_A_size():
+    df=pd.read_csv('../database/train_A_input_sizes.csv')
+    Y = df['Fake/Real']
+    X = df.drop(['Fake/Real', 'Mid', 'Small', 'Large'], axis=1)
+    return X,Y
+
+X,Y = read_A()
 X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=0.1, shuffle=True, random_state=42)
 
 classifier_config_dict = {
 
     # Classifiers
-    'sklearn.naive_bayes.GaussianNB': {
-    },
-
-    'sklearn.naive_bayes.BernoulliNB': {
-        'alpha': [1e-3, 1e-2, 1e-1, 1., 10., 100.],
-        'fit_prior': [True, False]
-    },
-
-    'sklearn.naive_bayes.MultinomialNB': {
-        'alpha': [1e-3, 1e-2, 1e-1, 1., 10., 100.],
-        'fit_prior': [True, False]
-    },
-
-    'sklearn.tree.DecisionTreeClassifier': {
-        'criterion': ["gini", "entropy"],
-        'max_depth': range(1, 11),
-        'min_samples_split': range(2, 21),
-        'min_samples_leaf': range(1, 21)
-    },
-
     'sklearn.ensemble.ExtraTreesClassifier': {
-        'n_estimators': [100],
+        'n_estimators': np.arange(100,500,50),
         'criterion': ["gini", "entropy"],
         'max_features': np.arange(0.05, 1.01, 0.05),
         'min_samples_split': range(2, 21),
@@ -43,7 +32,7 @@ classifier_config_dict = {
     },
 
     'sklearn.ensemble.RandomForestClassifier': {
-        'n_estimators': [100],
+        'n_estimators': np.arange(100,500,50),
         'criterion': ["gini", "entropy"],
         'max_features': np.arange(0.05, 1.01, 0.05),
         'min_samples_split': range(2, 21),
@@ -52,7 +41,7 @@ classifier_config_dict = {
     },
 
     'sklearn.ensemble.GradientBoostingClassifier': {
-        'n_estimators': [100],
+        'n_estimators': np.arange(100,500,50),
         'learning_rate': [1e-3, 1e-2, 1e-1, 0.5, 1.],
         'max_depth': range(1, 11),
         'min_samples_split': range(2, 21),
@@ -82,7 +71,7 @@ classifier_config_dict = {
     },
 
     'xgboost.XGBClassifier': {
-        'n_estimators': [100],
+        'n_estimators': np.arange(100,500,50),
         'max_depth': range(1, 11),
         'learning_rate': [1e-3, 1e-2, 1e-1, 0.5, 1.],
         'subsample': np.arange(0.05, 1.01, 0.05),
@@ -100,71 +89,6 @@ classifier_config_dict = {
         'l1_ratio': [0.25, 0.0, 1.0, 0.75, 0.5],
         'eta0': [0.1, 1.0, 0.01],
         'power_t': [0.5, 0.0, 1.0, 0.1, 100.0, 10.0, 50.0]
-    },
-
-    'sklearn.neural_network.MLPClassifier': {
-        'alpha': [1e-4, 1e-3, 1e-2, 1e-1],
-        'learning_rate_init': [1e-3, 1e-2, 1e-1, 0.5, 1.]
-    },
-
-    # Preprocesssors
-    'sklearn.preprocessing.Binarizer': {
-        'threshold': np.arange(0.0, 1.01, 0.05)
-    },
-
-    'sklearn.decomposition.FastICA': {
-        'tol': np.arange(0.0, 1.01, 0.05)
-    },
-
-    'sklearn.cluster.FeatureAgglomeration': {
-        'linkage': ['ward', 'complete', 'average'],
-        'affinity': ['euclidean', 'l1', 'l2', 'manhattan', 'cosine']
-    },
-
-    'sklearn.preprocessing.MaxAbsScaler': {
-    },
-
-    'sklearn.preprocessing.MinMaxScaler': {
-    },
-
-    'sklearn.preprocessing.Normalizer': {
-        'norm': ['l1', 'l2', 'max']
-    },
-
-    'sklearn.kernel_approximation.Nystroem': {
-        'kernel': ['rbf', 'cosine', 'chi2', 'laplacian', 'polynomial', 'poly', 'linear', 'additive_chi2', 'sigmoid'],
-        'gamma': np.arange(0.0, 1.01, 0.05),
-        'n_components': range(1, 11)
-    },
-
-    'sklearn.decomposition.PCA': {
-        'svd_solver': ['randomized'],
-        'iterated_power': range(1, 11)
-    },
-
-    'sklearn.preprocessing.PolynomialFeatures': {
-        'degree': [2],
-        'include_bias': [False],
-        'interaction_only': [False]
-    },
-
-    'sklearn.kernel_approximation.RBFSampler': {
-        'gamma': np.arange(0.0, 1.01, 0.05)
-    },
-
-    'sklearn.preprocessing.RobustScaler': {
-    },
-
-    'sklearn.preprocessing.StandardScaler': {
-    },
-
-    'tpot.builtins.ZeroCount': {
-    },
-
-    'tpot.builtins.OneHotEncoder': {
-        'minimum_fraction': [0.05, 0.1, 0.15, 0.2, 0.25],
-        'sparse': [False],
-        'threshold': [10]
     },
 
     # Selectors
