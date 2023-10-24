@@ -4,28 +4,14 @@ from tpot import TPOTClassifier
 from sklearn.model_selection import train_test_split
 
 
-def read_A():
-    df=pd.read_csv('../database/train_A_derma.csv')
+def read_B():
+    df=pd.read_csv('../database/train_B_text_processed.csv')
     Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
-    #X = df.drop(['Fake/Real', 'Doughnuts consumption', 'Id'], axis=1)
-    X = df.drop(['Doughnuts consumption', 'Id'], axis=1)
+    X = df.drop(['Title', 'Id'], axis=1)
     return X,Y
 
-def read_A_size():
-    df=pd.read_csv('../database/train_A_input_sizes.csv')
-    Y = df['Fake/Real']
-    X = df.drop(['Fake/Real', 'Mid', 'Small', 'Large'], axis=1)
-    return X,Y
-
-def read_A_one_hot():
-    df=pd.read_csv('../database/train_A_derma_one_hot_nan.csv')
-    Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
-    X = df
-    return X,Y
-
-
-X,Y = read_A()
-X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=0.1, shuffle=True, random_state=42)
+X,Y = read_B()
+X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=0.1, shuffle=True, random_state=42, stratify=Y)
 
 # Compute ratio sum(negative instances) / sum(positive instances)
 ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
@@ -158,5 +144,5 @@ pipeline_optimizer = TPOTClassifier(generations=10, population_size=40, cv=10,
                                     scoring='balanced_accuracy')
 
 pipeline_optimizer.fit(X_train, y_train)
-pipeline_optimizer.export('tpot_A_exported_pipeline.py')
+pipeline_optimizer.export('tpot_B_exported_pipeline.py')
 print("Test data: ", pipeline_optimizer.score(X_test, y_test))
