@@ -7,6 +7,8 @@ from sklearn.utils.class_weight import compute_class_weight
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot as plt
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
 
 
 ########################## Preprocessing ############################
@@ -24,17 +26,6 @@ ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
 # Drop target column from X
 X_train = X_train.drop(['Fake/Real'], axis=1)
 
-def scale_features(X, col_names):
-
-    scaled_features = X.copy()
-    features = X[col_names]
-    scaler = StandardScaler().fit(features.values)
-    features = scaler.transform(features.values)
-    scaled_features[col_names] = features
-    X = scaled_features
-
-    return X
-
 X_train = X_train.drop(['Title', 'Id','Unnamed: 0'], axis=1)
 X_test  = X_test.drop(['Title','Unnamed: 0'], axis=1)
 
@@ -44,63 +35,22 @@ training_target = y_train
 training_features = X_train
 testing_features = X_test
 
-############################## Cross val ###############################
+############################## Train ###############################
 
-cv_params = {
-    'metrics': 'error', # logloss, error, etc...
-    'nfold': 5,
-    'num_boost_round': 1000,  
-    'early_stopping_rounds': 50,
-}
+# Average CV score on the training set was: 0.9258736941634386
+exported_pipeline = GradientBoostingClassifier(learning_rate=0.5, max_depth=5, max_features=0.05, min_samples_leaf=13, min_samples_split=6, n_estimators=400, subsample=1.0)
+# Fix random state in exported estimator
+if hasattr(exported_pipeline, 'random_state'):
+    setattr(exported_pipeline, 'random_state', 42)
 
-xgb_parms = {
-    'objective': 'binary:logistic',
-    'seed': 0,
-    'n_estimators': 9,
-    'learning_rate': 0.1,  
-    'max_depth': 4,  # e.g., 3, 6, 9
-    'subsample': 1.0,  # between 0.6 and 1.0
-    'colsample_bytree': 0.8,  # between 0.6 and 1.0
-    'lambda': 0.0,  # Regularization term
-    'alpha': 0.0,  # Regularization term
-}
+exported_pipeline.fit(training_features, training_target)
+results = exported_pipeline.predict(testing_features)
+results_train = exported_pipeline.predict(training_features)
 
-
-xgb_model = xgb.XGBClassifier(
-    **xgb_parms,
-    scale_pos_weight=ratio,
-    enable_categorical=True,
-)
-
-dtrain = xgb.DMatrix(X_train, label=y_train, enable_categorical=True)
-cv = xgb.cv(
-    xgb_model.get_params(), 
-    dtrain=dtrain, 
-    stratified=True,
-    **cv_params)
-print(cv)
-#cm = confusion_matrix(y_val,y_val_pred)
-
-
-############################ Train & test #############################
-
-xgb = xgb.XGBClassifier(
-    **xgb_parms,
-    scale_pos_weight=ratio,
-    enable_categorical=True,
-)
-xgb.fit(X_train, y_train)
-y_train_pred = xgb.predict(X_train)
-y_test_pred  = xgb.predict(X_test)
-
-print()
-print("Train accuracy: ", accuracy_score(y_train, y_train_pred))
-
-plt.barh(columns, xgb.feature_importances_)
-plt.show()
+print("Train accuracy: ", accuracy_score(results_train, training_target))
 
 ############################ Save output #############################
-output = np.where(y_test_pred == 1, 'fake', 'real')
+output = np.where(results == 1, 'fake', 'real')
 output = pd.DataFrame(output, columns=['Predictions'])
 output.index.name = 'Id'
 output.to_csv('../output/output_B.csv')
