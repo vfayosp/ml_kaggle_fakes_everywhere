@@ -53,33 +53,15 @@ classifier_config_dict = {
         'subsample': np.arange(0.05, 1.01, 0.05),
         'max_features': np.arange(0.05, 1.01, 0.05)
     },
-
-    'sklearn.neighbors.KNeighborsClassifier': {
-        'n_neighbors': range(1, 101),
-        'weights': ["uniform", "distance"],
-        'p': [1, 2]
-    },
-
-    'sklearn.svm.LinearSVC': {
-        'penalty': ["l1", "l2"],
-        'loss': ["hinge", "squared_hinge"],
-        'dual': [True, False],
-        'tol': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
-        'C': [1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1., 5., 10., 15., 20., 25.]
-    },
-
-    'sklearn.linear_model.LogisticRegression': {
-        'penalty': ["l1", "l2"],
-        'C': [1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1., 5., 10., 15., 20., 25.],
-        'dual': [True, False]
-    },
-
     'xgboost.XGBClassifier': {
-        'n_estimators': np.arange(100,500,50),
+        'n_estimators': np.arange(100,500,10),
         'max_depth': range(1, 11),
         'learning_rate': [1e-3, 1e-2, 1e-1, 0.5, 1.],
         'subsample': np.arange(0.05, 1.01, 0.05),
+        'colsample_bytree': np.arange(0.05, 1.01, 0.05),
         'min_child_weight': range(1, 21),
+        'lambda': np.arange(0.00, 1.01, 0.05),  # Regularization term
+    	'alpha': np.arange(0.00, 1.01, 0.05),  # Regularization term
         'n_jobs': [1],
         'verbosity': [0]
     },
