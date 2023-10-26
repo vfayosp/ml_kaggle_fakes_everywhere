@@ -67,13 +67,15 @@ def process_title(title):
     has_exclamation = 1 if '!' in title else 0
     has_only_first_upper = 1 if is_only_first_upper(title.split()) else 0
     has_any_noun_verb_lower = 1 if is_any_noun_verb_lower(nlp, title) else 0
+    length = len(title.split())
     tokens_dict = tokens_count_dict(nlp, title)
+    
 
     return count_quotes, has_quote_start, has_dots, \
             has_apostrophe_s, has_apostrophe, has_number, has_comma, \
             has_colon, has_parenthesis, has_hyphen, has_and, \
             has_percentage, has_interrogation, has_exclamation, \
-            has_only_first_upper, has_any_noun_verb_lower, \
+            has_only_first_upper, has_any_noun_verb_lower, length, \
             tokens_dict['ADJ'], tokens_dict['ADV'], \
             tokens_dict['NOUN'], tokens_dict['VERB'], tokens_dict['PROPN'], \
             tokens_dict['PUNCT']
@@ -89,7 +91,7 @@ db['Fake/Real'] = db['Fake/Real'].replace({'real': 0, 'fake': 1})
 db[['count_quotes', 'has_quote_start', 'has_dots', 'has_apostrophe_s', \
     'has_apostrophe', 'has_number', 'has_comma', 'has_colon', 'has_parenthesis', \
     'has_hyphen', 'has_and', 'has_percentage', 'has_interrogation', 'has_exclamation', \
-    'has_only_first_upper', 'has_any_noun_verb_lower', \
+    'has_only_first_upper', 'has_any_noun_verb_lower', 'length', \
     'ADJ', 'ADV', 'NOUN', 'VERB', 'PROPN', 'PUNCT']] \
     = db['Title'].apply(process_title).apply(pd.Series)
 
@@ -104,7 +106,7 @@ db = db.drop(['Id'], axis=1)
 db[['count_quotes', 'has_quote_start', 'has_dots', 'has_apostrophe_s', \
     'has_apostrophe', 'has_number', 'has_comma', 'has_colon', 'has_parenthesis', \
     'has_hyphen', 'has_and', 'has_percentage', 'has_interrogation', 'has_exclamation', \
-    'has_only_first_upper', 'has_any_noun_verb_lower', \
+    'has_only_first_upper', 'has_any_noun_verb_lower', 'length', \
     'ADJ', 'ADV', 'NOUN', 'VERB', 'PROPN', 'PUNCT']] \
     = db['Title'].apply(process_title).apply(pd.Series)
 

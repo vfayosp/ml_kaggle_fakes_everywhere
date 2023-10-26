@@ -51,13 +51,11 @@ imputer.fit(training_features)
 training_features = imputer.transform(training_features)
 testing_features = imputer.transform(testing_features)
 
-# Average CV score on the training set was: 0.8284416491963661
-exported_pipeline = make_pipeline(
-    StackingEstimator(estimator=RandomForestClassifier(bootstrap=True, criterion="gini", max_features=0.8, min_samples_leaf=3, min_samples_split=17, n_estimators=150)),
-    LinearSVC(C=0.5, dual=True, loss="hinge", penalty="l2", tol=0.1)
-)
-# Fix random state for all the steps in exported pipeline
-set_param_recursive(exported_pipeline.steps, 'random_state', 42)
+# Average CV score on the training set was: 0.8305865899528241
+exported_pipeline = RandomForestClassifier(bootstrap=False, criterion="gini", max_features=0.45, min_samples_leaf=2, min_samples_split=20, n_estimators=150)
+# Fix random state in exported estimator
+if hasattr(exported_pipeline, 'random_state'):
+    setattr(exported_pipeline, 'random_state', 42)
 
 exported_pipeline.fit(training_features, training_target)
 results = exported_pipeline.predict(testing_features)

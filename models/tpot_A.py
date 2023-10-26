@@ -24,7 +24,7 @@ def read_A_one_hot():
     return X,Y
 
 
-X,Y = read_A()
+X,Y = read_A_one_hot()
 X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=0.1, shuffle=True, random_state=42)
 
 # Compute ratio sum(negative instances) / sum(positive instances)

@@ -55,11 +55,6 @@ def preprocess(db):
             if row[i] == np.nan:
                 row[i] == row[(i+3)%6]
         return row
-                
-    print('Preprocessing Size')
-    db[['Small size','Mid size', 'Large size', 'Small', 'Mid', 'Large']] \
-            = db[['Small size','Mid size', 'Large size','Small', 'Mid', 'Large']] \
-            .apply(populate_size,axis=1)
 
     return db
 

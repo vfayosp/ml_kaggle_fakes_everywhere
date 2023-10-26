@@ -120,7 +120,7 @@ classifier_config_dict = {
 
 }
 
-pipeline_optimizer = TPOTClassifier(generations=10, population_size=40, cv=10,
+pipeline_optimizer = TPOTClassifier(generations=1, population_size=40, cv=10,
                                     random_state=42, verbosity=2, 
                                     config_dict=classifier_config_dict,
                                     scoring='balanced_accuracy')
