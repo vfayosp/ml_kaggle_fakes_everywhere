@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import tensorflow_hub as hub
+import tensorflow as tf
 import spacy 
 
 
@@ -80,6 +82,10 @@ def process_title(title):
             tokens_dict['NOUN'], tokens_dict['VERB'], tokens_dict['PROPN'], \
             tokens_dict['PUNCT']
 
+def embed(input):
+    input = input.split(' ')
+    embedding = tf.reduce_mean(model(input), axis=0).numpy().tolist()
+    return embedding
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -94,6 +100,15 @@ db[['count_quotes', 'has_quote_start', 'has_dots', 'has_apostrophe_s', \
     'has_only_first_upper', 'has_any_noun_verb_lower', 'length', \
     'ADJ', 'ADV', 'NOUN', 'VERB', 'PROPN', 'PUNCT']] \
     = db['Title'].apply(process_title).apply(pd.Series)
+    
+module_url = "https://tfhub.dev/google/universal-sentence-encoder/4" #@param ["https://tfhub.dev/google/universal-sentence-encoder/4", "https://tfhub.dev/google/universal-sentence-encoder-large/5"]
+model = hub.load(module_url)
+
+emb_columns = []
+for i in range(0,512):
+    emb_columns.append('emb'+str(i))
+
+db[emb_columns] = db['Title'].apply(embed).apply(pd.Series)
 
 print(db)
 pd.DataFrame.to_csv(db, OUTPUT_TRAIN_DATASET)
@@ -109,6 +124,15 @@ db[['count_quotes', 'has_quote_start', 'has_dots', 'has_apostrophe_s', \
     'has_only_first_upper', 'has_any_noun_verb_lower', 'length', \
     'ADJ', 'ADV', 'NOUN', 'VERB', 'PROPN', 'PUNCT']] \
     = db['Title'].apply(process_title).apply(pd.Series)
+    
+module_url = "https://tfhub.dev/google/universal-sentence-encoder/4" #@param ["https://tfhub.dev/google/universal-sentence-encoder/4", "https://tfhub.dev/google/universal-sentence-encoder-large/5"]
+model = hub.load(module_url)
+
+emb_columns = []
+for i in range(0,512):
+    emb_columns.append('emb'+str(i))
+
+db[emb_columns] = db['Title'].apply(embed).apply(pd.Series)
 
 print(db)
 pd.DataFrame.to_csv(db, OUTPUT_TEST_DATASET)
