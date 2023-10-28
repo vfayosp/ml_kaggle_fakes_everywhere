@@ -116,8 +116,11 @@ classifier_config_dict = {
                 'max_features': np.arange(0.05, 1.01, 0.05)
             }
         }
-    }
-
+    },
+    'sklearn.decomposition.PCA': {
+        'svd_solver': ['randomized'],
+        'iterated_power': range(1, 11)
+    },
 }
 
 pipeline_optimizer = TPOTClassifier(generations=1, population_size=40, cv=10,

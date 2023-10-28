@@ -12,10 +12,10 @@ features = tpot_data.drop('target', axis=1)
 training_features, testing_features, training_target, testing_target = \
             train_test_split(features, tpot_data['target'], random_state=42)
 
-# Average CV score on the training set was: 0.9316365107924675
+# Average CV score on the training set was: 0.9286587393386005
 exported_pipeline = make_pipeline(
     StackingEstimator(estimator=ExtraTreesClassifier(bootstrap=True, criterion="gini", max_features=0.9000000000000001, min_samples_leaf=7, min_samples_split=11, n_estimators=250)),
-    RandomForestClassifier(bootstrap=True, criterion="entropy", max_features=0.4, min_samples_leaf=7, min_samples_split=6, n_estimators=250)
+    RandomForestClassifier(bootstrap=True, criterion="entropy", max_features=0.4, min_samples_leaf=7, min_samples_split=6, n_estimators=100)
 )
 # Fix random state for all the steps in exported pipeline
 set_param_recursive(exported_pipeline.steps, 'random_state', 42)

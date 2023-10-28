@@ -39,7 +39,7 @@ cv_params = {
 
 xgb_parms = {
     'objective': 'binary:logistic',
-    'n_estimators': 9,
+    'n_estimators': 28,
     'seed': 0,
     'learning_rate': 0.1,  
     'max_depth': 3,  # e.g., 3, 6, 9
