@@ -13,11 +13,13 @@ from sklearn.pipeline import make_pipeline, make_union
 from tpot.builtins import StackingEstimator
 from tpot.export_utils import set_param_recursive
 from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.linear_model import SGDClassifier
 
 ########################## Preprocessing ############################
 
-db      = pd.read_csv('../database/train_B_text_processed.csv')
-db_test = pd.read_csv('../database/test_B_text_processed.csv')
+db      = pd.read_csv('../database/train_B_text_processed_distance.csv')
+db_test = pd.read_csv('../database/test_B_text_processed_distance.csv')
 
 X_train = db
 y_train = db['Fake/Real']
@@ -40,10 +42,15 @@ ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
 # Drop target column from X
 X_train = X_train.drop(['Fake/Real'], axis=1)
 
-X_train = X_train.drop(['Title', 'Id','Unnamed: 0'], axis=1)
-X_test  = X_test.drop(['Title','Unnamed: 0'], axis=1)
+X_train = X_train.drop(['Title', 'Id','Unnamed: 0', 'Unnamed: 0.1'], axis=1)
+for i in range(0,1536):
+    X_train = X_train.drop(['emb'+str(i)], axis=1)
+X_test  = X_test.drop(['Title','Unnamed: 0', 'Unnamed: 0.1'], axis=1)
+for i in range(0,1536):
+    X_test = X_test.drop(['emb'+str(i)], axis=1)
 
 columns = X_train.columns
+print(columns)
 
 training_target = y_train
 training_features = X_train
@@ -51,18 +58,18 @@ testing_features = X_test
 
 ############################## Train ###############################
 
-# Average CV score on the training set was: 0.9316365107924675
+# Average CV score on the training set was: 0.950309744126413
 exported_pipeline = make_pipeline(
-    StackingEstimator(estimator=ExtraTreesClassifier(bootstrap=True, criterion="gini", max_features=0.9000000000000001, min_samples_leaf=7, min_samples_split=11, n_estimators=250)),
-    RandomForestClassifier(bootstrap=True, criterion="entropy", max_features=0.4, min_samples_leaf=7, min_samples_split=6, n_estimators=250)
+    StackingEstimator(estimator=GradientBoostingClassifier(learning_rate=0.01, max_depth=7, max_features=0.25, min_samples_leaf=8, min_samples_split=20, n_estimators=350, subsample=0.45)),
+    SGDClassifier(alpha=0.001, eta0=1.0, fit_intercept=False, l1_ratio=1.0, learning_rate="constant", loss="hinge", penalty="elasticnet", power_t=0.1)
 )
 # Fix random state for all the steps in exported pipeline
 set_param_recursive(exported_pipeline.steps, 'random_state', 42)
 
 exported_pipeline.fit(training_features, training_target)
 results = exported_pipeline.predict(testing_features)
-results_train = exported_pipeline.predict(training_features)
 
+results_train = exported_pipeline.predict(training_features)
 print("Train accuracy: ", accuracy_score(results_train, training_target))
 
 ############################ Save output #############################

@@ -11,13 +11,22 @@ from matplotlib import pyplot as plt
 
 ########################## Preprocessing ############################
 
+
 def read_B():
     df=pd.read_csv('../database/train_B_text_processed.csv')
     Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
-    X = df.drop(['Title', 'Id'], axis=1)
+    X = df.drop(['Title', 'Id', 'Unnamed: 0'], axis=1)
     return X,Y
 
-X,Y = read_B()
+def read_B_distance():
+    df=pd.read_csv('../database/train_B_text_processed_distance.csv')
+    Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
+    X = df.drop(['Title', 'Id', 'Unnamed: 0', 'Unnamed: 0.1'], axis=1)
+    for i in range(0,1536):
+        X = X.drop(['emb'+str(i)], axis=1)
+    return X,Y
+
+X,Y = read_B_distance()
 X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=0.1, shuffle=True, random_state=42, stratify=Y)
 
 # Compute ratio sum(negative instances) / sum(positive instances)
@@ -27,6 +36,8 @@ ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
 X_train = X_train.drop(['Fake/Real'], axis=1)
 X_test  = X_test.drop(['Fake/Real'], axis=1)
 columns = X_train.columns
+
+print("COLUMNS: ", columns)
 
 ############################## Cross val ###############################
 
@@ -42,7 +53,7 @@ xgb_parms = {
     'n_estimators': 28,
     'seed': 0,
     'learning_rate': 0.1,  
-    'max_depth': 3,  # e.g., 3, 6, 9
+    'max_depth': 4,  # e.g., 3, 6, 9
     'subsample': 0.9,  # between 0.6 and 1.0
     'colsample_bytree': 0.6,  # between 0.6 and 1.0
     'lambda': 0.1,  # Regularization term

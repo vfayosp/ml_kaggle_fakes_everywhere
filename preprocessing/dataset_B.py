@@ -6,9 +6,9 @@ import spacy
 
 
 TRAIN_DATASET = '../database/train_B_text.csv'
-OUTPUT_TRAIN_DATASET = '../database/train_B_text_processed.csv'
+OUTPUT_TRAIN_DATASET = '../database/train_B_text_processed_embeddings.csv'
 TEST_DATASET = '../database/test_B_text.csv'
-OUTPUT_TEST_DATASET = '../database/test_B_text_processed.csv'
+OUTPUT_TEST_DATASET = '../database/test_B_text_processed_embeddings.csv'
 
 
 def is_only_first_upper(words):
@@ -101,6 +101,7 @@ db[['count_quotes', 'has_quote_start', 'has_dots', 'has_apostrophe_s', \
     'ADJ', 'ADV', 'NOUN', 'VERB', 'PROPN', 'PUNCT']] \
     = db['Title'].apply(process_title).apply(pd.Series)
     
+   
 module_url = "https://tfhub.dev/google/universal-sentence-encoder/4" #@param ["https://tfhub.dev/google/universal-sentence-encoder/4", "https://tfhub.dev/google/universal-sentence-encoder-large/5"]
 model = hub.load(module_url)
 

@@ -7,10 +7,19 @@ from sklearn.model_selection import train_test_split
 def read_B():
     df=pd.read_csv('../database/train_B_text_processed.csv')
     Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
-    X = df.drop(['Title', 'Id'], axis=1)
+    X = df.drop(['Title', 'Id', 'Unnamed: 0'], axis=1)
     return X,Y
 
-X,Y = read_B()
+def read_B_distance():
+    df=pd.read_csv('../database/train_B_text_processed_distance.csv')
+    Y = df['Fake/Real'].replace({'real': 0, 'fake': 1})
+    X = df.drop(['Title', 'Id', 'Unnamed: 0', 'Unnamed: 0.1', 'ADJ', 'ADV', 'NOUN', 'VERB',
+       'PROPN', 'PUNCT'], axis=1)
+    for i in range(0,1536):
+        X = X.drop(['emb'+str(i)], axis=1)
+    return X,Y
+
+X,Y = read_B_distance()
 X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=0.1, shuffle=True, random_state=42, stratify=Y)
 
 # Compute ratio sum(negative instances) / sum(positive instances)
@@ -20,6 +29,8 @@ ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
 X_train = X_train.drop(['Fake/Real'], axis=1)
 X_test  = X_test.drop(['Fake/Real'], axis=1)
 columns = X_train.columns
+
+print("COLUMNS: ", columns)
 
 ################################# TPOT ##################################
 
@@ -123,7 +134,7 @@ classifier_config_dict = {
     },
 }
 
-pipeline_optimizer = TPOTClassifier(generations=1, population_size=40, cv=10,
+pipeline_optimizer = TPOTClassifier(generations=4, population_size=40, cv=10,
                                     random_state=42, verbosity=2, 
                                     config_dict=classifier_config_dict,
                                     scoring='balanced_accuracy')
