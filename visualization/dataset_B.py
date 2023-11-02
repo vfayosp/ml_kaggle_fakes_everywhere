@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import spacy 
 
-db = pd.read_csv('../database/train_B_text.csv')
+db = pd.read_csv('../database/train_B_text_processed_distance.csv')
 
 db = db.drop(['Id'], axis=1)
 db['Fake/Real'] = db['Fake/Real'].replace({'real': 0, 'fake': 1})
@@ -26,6 +26,12 @@ def process_title(title):
 db[['quotes', 's_quotes', 'upper_letters']] = db['Title'].apply(process_title).apply(pd.Series)
 
 #print(db)
+
+# get a dictionary with the value of column title: closest_emb 
+titles = db['Title'].to_list()
+closest_emb = db['closest_emb'].to_list()
+distances_dict = dict(zip(titles, closest_emb))
+
 
 ######################### Just playing
 
@@ -71,6 +77,9 @@ for i in range(len(titles)):
 print('Count ...: ', count)
 
 print("......................................................")
+
+
+
 '''
 titles = filter
 filter = []
@@ -277,6 +286,17 @@ for i in range(len(titles)):
 print("Count number: ", count)
 
 print("......................................................")
+
+for i in range(len(titles)):
+    title, label = titles[i]
+    if distances_dict[title] > 0.07 and label == 1:
+        # compute mean of words length
+        words = title.split()
+        mean = 0
+        for word in words:
+            mean += len(word)
+        mean /= len(words)
+        print(mean, title, label, distances_dict[title] )
 
 '''
 

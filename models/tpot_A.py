@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from tpot import TPOTClassifier
 from sklearn.model_selection import train_test_split
-
+from sklearn.preprocessing import StandardScaler
 
 def read_A():
     df=pd.read_csv('../database/train_A_derma.csv')
@@ -31,9 +31,33 @@ X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=0.1, shuffle=
 ratio = np.sum(X_train['Fake/Real'] == 0) / np.sum(X_train['Fake/Real'] == 1)
 
 # Drop target column from X
-X_train = X_train.drop(['Fake/Real'], axis=1)
-X_test  = X_test.drop(['Fake/Real'], axis=1)
+X_train = X_train.drop(['Fake/Real', 'Unnamed: 0'], axis=1)
+X_test  = X_test.drop(['Fake/Real', 'Unnamed: 0'], axis=1)
+
+def scale_features(X, col_names):
+        scaled_features = X.copy()
+        features = X[col_names]
+        scaler = StandardScaler().fit(features.values)
+        features = scaler.transform(features.values)
+        scaled_features[col_names] = features
+        X = scaled_features
+        return X, scaler
+
+def scale_features_scaler(X, col_names, scaler):
+        scaled_features = X.copy()
+        features = X[col_names]
+        features = scaler.transform(features.values)
+        scaled_features[col_names] = features
+        X = scaled_features
+        return X
+
+X_train, scaler = scale_features(X_train, ['Genetic Propensity'])
+X_test = scale_features_scaler(X_test, ['Genetic Propensity'], scaler)
+X_train, scaler = scale_features(X_train, ['Num NaN'])
+X_test = scale_features_scaler(X_test, ['Num NaN'], scaler)
+
 columns = X_train.columns
+print("columns: ", columns)
 
 ################################# TPOT ##################################
 
@@ -152,7 +176,7 @@ classifier_config_dict = {
 
 }
 
-pipeline_optimizer = TPOTClassifier(generations=10, population_size=40, cv=10,
+pipeline_optimizer = TPOTClassifier(generations=10, population_size=80, cv=10,
                                     random_state=42, verbosity=2, 
                                     config_dict=classifier_config_dict,
                                     scoring='balanced_accuracy')
